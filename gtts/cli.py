@@ -40,7 +40,7 @@ log = logging.getLogger('gtts')
 
 def sys_encoding():
     """Return the charset that the user is likely using"""
-    return 'utf8'
+    #return 'utf8'
     return locale.getpreferredencoding() or sys.getdefaultencoding()
 
 
