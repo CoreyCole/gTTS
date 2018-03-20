@@ -39,9 +39,8 @@ log = logging.getLogger('gtts')
 
 
 def sys_encoding():
-    """Return the charset that the user is likely using"""
+    """Charset to use for --file <path>|- (stdin)"""
     return 'utf8'
-    return locale.getpreferredencoding() or sys.getdefaultencoding()
 
 
 def validate_text(ctx, param, text):
