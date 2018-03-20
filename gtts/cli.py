@@ -190,7 +190,7 @@ def tts_cli(text, file, output, slow, lang, nocheck):
             log.debug(str(e), exc_info=True)
             raise click.FileError(
                 file.name,
-                "FILE must be encoded using system encoding (%s)." %
+                "FILE must be encoded using '%s'." %
                 sys_encoding())
         except Exception as e:
             log.debug(str(e), exc_info=True)
