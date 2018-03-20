@@ -25,11 +25,6 @@ class TestParams(unittest.TestCase):
         self.runner = CliRunner()
         (self.f, self.empty_file_path) = tempfile.mkstemp(suffix='.txt')
 
-    @classmethod
-    def tearDownClass(self):
-        self.f.close()
-        os.remove(self.empty_file_path)
-
     def invoke(self, args, input=None):
         return self.runner.invoke(tts_cli, args, input)
 
@@ -242,11 +237,6 @@ class TestOutputs(unittest.TestCase):
     def setUp(self):
         self.runner = CliRunner()
         (self.f, self.save_file_path) = tempfile.mkstemp(suffix='.mp3')
-
-    @classmethod
-    def TearDown(self):
-        self.f.close()
-        os.remove(self.save_file_path)
 
     def invoke(self, args, input=None):
         return self.runner.invoke(tts_cli, args, input)
