@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from . import Languages, LanguagesFetchError
-from .string import _len, _tokenize
+from .text import _len, _tokenize
 from gtts_token import gtts_token
 from six.moves import urllib
 import urllib3
 import requests
 import logging
 
+__all__ = ['gTTS', 'gTTSError']
 
 class Speed:
     """The Google API supports two speeds.
