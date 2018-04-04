@@ -24,25 +24,26 @@ TOKENIZER_RULES_DEFAULTS = []
 """
 
 
-class Rule():
+class Ruleset():
     """
-    A base rule
+    A base Ruleset
     """
-    def __init__(self, expr, pattern_func):
-        self.expr = expr
+
+    def __init__(self, criteria, pattern_func, flags=0):
+        self.criteria = criteria
         self.pattern_func = pattern_func
 
     @property
-    def expr(self):
-        return self._expr
+    def criteria(self):
+        return self._criteria
 
-    @expr.setter
-    def expr(self, val):
+    @criteria.setter
+    def criteria(self, val):
         try:
             _ = iter(val)
         except TypeError:
-            raise ValueError("'expr' is not iterable")
-        self._expr = val
+            raise ValueError("'criteria' is not iterable")
+        self._criteria = set(val)
 
     @property
     def pattern_func(self):
@@ -54,42 +55,52 @@ class Rule():
             raise ValueError("'pattern_func' is not callable")
         self._pattern_func = val
 
-    def pattern(self):
+    def items(self):
+        for c in self.criteria:
+            yield self._transform_item(c)
+
+    def _transform_item(self, e):
         raise NotImplementedError
 
-class PreProcessorRule(Rule):
+
+class PreProcessorRuleset(Ruleset):
     """
-    A pre-processor rule
+    A pre-processor rule set
+    i.e. set of items (pattern, repl) for `re.sub()`s
     """
-    def __init__(self, expr, pattern_func, repl):
-        super(PreProcessorRule, self).__init__(expr, pattern_func)
+
+    def __init__(self, criteria, pattern_func, flags=0, repl=None):
+        super(PreProcessorRuleset, self).__init__(criteria, pattern_func, flags)
         self.repl = repl
 
-    def pattern(self):
-        
+    def _transform_item(self, item):
+        try:
+            # item is a (criterion, repl) tuple
+            _crit, _repl = item
+        except ValueError:
+            if len(item) > 2:
+                # item is a tuple with too many values
+                ValueError('item must be (a,b) tuple')
+            elif self.repl is not None:
+                # item is a criterion only, augment with default repl
+                _crit, _repl = item, self.repl
+            else:
+                # item is a criterion only, but default repl is None
+                raise ValueError('must define repl if not tuples')
 
-class TokenizerRule(Rule):
+        pattern = self.pattern_func(re.escape(_crit))
+        return pattern, _repl
+
+
+class TokenizerRuleset(Ruleset):
     """
-    A tokenizer rule
+    A tokenizer rule set
+    i.e. set of items (pattern) for `re.split()`s
     """
-    def pattern(self):
-        re_alts = []
-        for e in self.expr:
-            ee = re.escape(e)
-            re_alts.append(self.pattern_func(ee))
-        return '|'.join(re_alts)
 
-
-"""
-    def _char_repl(self, el):
-        # Returns a (`char`, `repl`) tuple.
-        # If `repl` is `None`, `el` is already (`char`, `repl`)
-        # else return (`el`, `repl`)
-        if self.repl is not None:
-            return char, self.repl
-        else:
-            return char
-"""
+    def _transform_item(self, c):
+        pattern = self.pattern_func(re.escape(c))
+        return pattern
 
 
 class Tokenizer():
