@@ -23,6 +23,37 @@ TOKENIZER_RULES_DEFAULTS = []
 ]
 """
 
+class RegexBuilder():
+    """
+    A RegexBuilder
+    """
+
+    def __init__(self, pattern_args, pattern_func, flags=0):
+        # Args
+        self.pattern_args = pattern_args
+        self.pattern_func = pattern_func
+        self.flags = flags
+
+        # Compile
+        self.regex = self._compile()
+
+    def _compile(self):
+        alts = []
+        for arg in self.pattern_args:
+            arg = re.escape(arg)
+            alt = self.pattern_func(arg)
+            alts.append(alt)
+
+        pattern = '|'.join(alts)
+        return re.compile(pattern, self.flags) 
+        
+
+class PreProcessor():
+    """
+    A PreProcessor
+    """
+
+    def __init__(self, text, 
 
 class Ruleset():
     """
