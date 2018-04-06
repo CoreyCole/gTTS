@@ -23,13 +23,13 @@ TOKENIZER_RULES_DEFAULTS = []
 ]
 """
 
+
 class RegexBuilder():
     """
     A RegexBuilder
     """
 
     def __init__(self, pattern_args, pattern_func, flags=0):
-        # Args
         self.pattern_args = pattern_args
         self.pattern_func = pattern_func
         self.flags = flags
@@ -45,15 +45,56 @@ class RegexBuilder():
             alts.append(alt)
 
         pattern = '|'.join(alts)
-        return re.compile(pattern, self.flags) 
-        
+        return re.compile(pattern, self.flags)
 
-class PreProcessor():
+
+class PreProcessorRegex():
     """
     A PreProcessor
     """
 
-    def __init__(self, text, 
+    def __init__(self, search_args, search_func, repl, flags=0):
+        self.repl = repl
+
+        # Create regex list
+        self.regexes = []
+        for arg in search_args:
+            rb = RegexBuilder([arg], search_func, flags)
+            self.regexes.append(rb.regex)
+
+    def run(self, text):
+        for regex in self.regexes:
+            text = regex.sub(self.repl, text)
+        return text
+
+
+class PreProcessorSub():
+    """
+    A PreProcessorSub
+    """
+
+    def __init__(self, sub_pairs, ignore_case=True):
+        def search_func(x): return u"{}".format(x)
+        flags = re.I if ignore_case else 0
+
+        # Create pre-processor list
+        self.pre_processors = []
+        for sub_pair in sub_pairs:
+            pattern, repl = sub_pair
+            pp = PreProcessorRegex([pattern], search_func, repl, flags)
+            self.pre_processors.append(pp)
+
+    def run(self, text):
+        for pp in self.pre_processors:
+            text = pp.run(text)
+        return text
+
+class TokenizerCase():
+    """
+    A TokenizerCase
+    """
+    pass
+    
 
 class Ruleset():
     """
@@ -101,7 +142,12 @@ class PreProcessorRuleset(Ruleset):
     """
 
     def __init__(self, criteria, pattern_func, flags=0, repl=None):
-        super(PreProcessorRuleset, self).__init__(criteria, pattern_func, flags)
+        super(
+            PreProcessorRuleset,
+            self).__init__(
+            criteria,
+            pattern_func,
+            flags)
         self.repl = repl
 
     def _transform_item(self, item):
