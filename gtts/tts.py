@@ -11,6 +11,10 @@ import logging
 
 __all__ = ['gTTS', 'gTTSError']
 
+# TODO Pull logger out of class
+
+def token_temp(text):
+    return [text]
 
 class Speed:
     """The Google API supports two speeds.
@@ -60,7 +64,7 @@ class gTTS:
             slow=False,
             lang_check=False,
             pre_processors=[],
-            tokenizer_func=str):
+            tokenizer_func=token_temp):
 
         # Logger
         self.log = logging.getLogger(__name__)
@@ -97,6 +101,7 @@ class gTTS:
             self.speed = Speed.NORMAL
 
         # Pre-processors and tokenizer
+        # TODO Validate this
         self.pre_processors = pre_processors
         self.tokenizer_func = tokenizer_func
 
@@ -108,7 +113,7 @@ class gTTS:
         for pp in self.pre_processors:
             text = pp(text)
 
-        # Split text in parts
+        # TODO Clean?
         if _len(text) <= self.MAX_CHARS:
             # The API removes newlines gluing words together...
             # (normally the tokenizer takes care of this)
@@ -117,6 +122,7 @@ class gTTS:
         else:
             # Tokenize
             text_parts = self.tokenizer_func(text)
+            self.log.debug(text)
 
             # Minimize tokens
             min_parts = []
@@ -140,7 +146,7 @@ class gTTS:
         # urllib3 prints an insecure warning on stdout. We disable that.
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-        text_parts = self._tokenize(text)
+        text_parts = self._tokenize(self.text)
         self.log.debug("text_parts: %i", len(text_parts))
         assert text_parts, 'No text to send to TTS API'
         # TODO, raise?
@@ -159,7 +165,7 @@ class gTTS:
                        'q': part,
                        'tl': self.lang,
                        'ttsspeed': self.speed,
-                       'total': len(self.text_parts),
+                       'total': len(text_parts),
                        'idx': idx,
                        'client': 'tw-ob',
                        'textlen': _len(part),
@@ -237,6 +243,7 @@ class gTTSError(Exception):
         if status == 403:
             cause = "Bad token or upstream API changes"
         elif status == 404 and not tts.lang_check:
+            # TODO Also for empty text request
             cause = "Unsupported language '%s'" % self.tts.lang
         elif status >= 500:
             cause = "Uptream API error. Try again later."
