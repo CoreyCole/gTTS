@@ -27,3 +27,6 @@ def _len(text):
     except NameError:
         # Python 3
         return len(text)
+
+def _clean(tokens):
+    tokens = [t.strip() for t in tokens if t.strip()]

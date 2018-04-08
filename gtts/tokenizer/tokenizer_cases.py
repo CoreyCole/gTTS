@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
-from collections import namedtuple
+
+from gtts.tokenizer import TokenizerCase
 import re
 
-TokenizerRule = namedtuple(
-    'TokenizerRule',
-    'chars pattern_func')
+ALL_PUNC = u"?!？！.,¡()[]¿…‥،;:—。，、：\n"
+
+TONE_MARKS = u"?!？！"
+
+PERIOD_COMMA = u".,"
 
 # Keep tone-modifying punctuation. Match following character.
-tone_marks = TokenizerRule(
-    chars=u'?!？！',
+tone_marks = TokenizerCase(
+    pattern_args=u'?!？！',
     pattern_func=lambda c: u"(?<={}).".format(c))
 
 # Period and comma rule.
@@ -16,11 +19,11 @@ tone_marks = TokenizerRule(
 # Won't cut in the middle/after dotted abbreviations; won't cut numbers.
 # Caveats: Won't match if a dotted abbreviation ends a sentence.
 #          Won't match the end of a sentence if not followed by a space.
-period_comma = TokenizerRule(
-    chars=u'.,',
-    pattern_func=lambda c: u"(?<!\.[a-zA-Z]){} ".format(c))
+period_comma = TokenizerCase(
+    pattern_args=u'.,',
+    pattern_func=lambda c: u"(?<!\.[a-z]){} ".format(c))
 
 # Match other punctuation.
-other_punctuation = TokenizerRule(
-    chars=u'¡()[]¿…‥،;:—。，、：\n',
+other_punctuation = TokenizerCase(
+    pattern_args=u'¡()[]¿…‥،;:—。，、：\n',
     pattern_func=lambda c: u"{}".format(c))

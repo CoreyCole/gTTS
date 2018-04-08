@@ -1,20 +1,16 @@
 # -*- coding: utf-8 -*-
-from . import Languages, LanguagesFetchError
-from gtts_token import gtts_token
-from six.moves import urllib
-
+from gtts.tokenizer import pre_processors, Tokenizer, tokenizer_cases
+from gtts.lang import Languages, LanguagesFetchError
 from gtts.utils import _len, _minimize
 
+from gtts_token import gtts_token
+from six.moves import urllib
 import urllib3
 import requests
 import logging
 
 __all__ = ['gTTS', 'gTTSError']
 
-# TODO Pull logger out of class
-
-def token_temp(text):
-    return [text]
 
 class Speed:
     """The Google API supports two speeds.
@@ -63,8 +59,17 @@ class gTTS:
             lang='en',
             slow=False,
             lang_check=False,
-            pre_processors=[],
-            tokenizer_func=token_temp):
+            pre_processor_funcs=[
+                pre_processors.tone_marks,
+                pre_processors.end_of_line,
+                pre_processors.abbreviations,
+                pre_processors.word_sub
+            ],
+            tokenizer_func=Tokenizer([
+                tokenizer_cases.period_comma,
+                tokenizer_cases.other_punctuation
+            ]).run
+    ):
 
         # Logger
         self.log = logging.getLogger(__name__)
@@ -101,8 +106,7 @@ class gTTS:
             self.speed = Speed.NORMAL
 
         # Pre-processors and tokenizer
-        # TODO Validate this
-        self.pre_processors = pre_processors
+        self.pre_processor_funcs = pre_processor_funcs
         self.tokenizer_func = tokenizer_func
 
         # Google Translate token
@@ -110,10 +114,9 @@ class gTTS:
 
     def _tokenize(self, text):
         # Apply pre-processords
-        for pp in self.pre_processors:
+        for pp in self.pre_processor_funcs:
             text = pp(text)
 
-        # TODO Clean?
         if _len(text) <= self.MAX_CHARS:
             # The API removes newlines gluing words together...
             # (normally the tokenizer takes care of this)
@@ -121,14 +124,20 @@ class gTTS:
             return [text]
         else:
             # Tokenize
-            text_parts = self.tokenizer_func(text)
-            self.log.debug(text)
+            tokens = self.tokenizer_func(text)
+            self.log.debug("BEFORE CLEAN")
+            self.log.debug(tokens)
+
+            # Clean
+            tokens = [t.strip() for t in tokens if t.strip()]            
+            self.log.debug("AFTER CLEAN")
+            self.log.debug(tokens)
 
             # Minimize tokens
-            min_parts = []
-            for p in text_parts:
-                min_parts += _minimize(p, ' ', self.MAX_CHARS)
-            return min_parts
+            min_tokens = []
+            for t in tokens:
+                min_tokens += _minimize(t, ' ', self.MAX_CHARS)
+            return min_tokens
 
     def write_to_fp(self, fp):
         """Do the TTS API request and write result to a file-like object
@@ -149,7 +158,6 @@ class gTTS:
         text_parts = self._tokenize(self.text)
         self.log.debug("text_parts: %i", len(text_parts))
         assert text_parts, 'No text to send to TTS API'
-        # TODO, raise?
 
         for idx, part in enumerate(text_parts):
             try:
@@ -243,7 +251,6 @@ class gTTSError(Exception):
         if status == 403:
             cause = "Bad token or upstream API changes"
         elif status == 404 and not tts.lang_check:
-            # TODO Also for empty text request
             cause = "Unsupported language '%s'" % self.tts.lang
         elif status >= 500:
             cause = "Uptream API error. Try again later."

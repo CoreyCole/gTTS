@@ -1,29 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
 
-"""
-from test import PreProcessorRule, TokenizerRule
-from test import preprocessor_rules, tokenizer_rules
-"""
-
-PRE_PROCESSOR_RULES_DEFAULTS = []
-"""
-    preprocessor_rules.tone_marks,
-    preprocessor_rules.end_of_line,
-    preprocessor_rules.abbreviations,
-    preprocessor_rules.word_sub
-]
-"""
-
-TOKENIZER_RULES_DEFAULTS = []
-"""
-    tokenizer_rules.tone_marks,
-    tokenizer_rules.period_comma,
-    tokenizer_rules.other_punctuation
-]
-"""
-
-
 class RegexBuilder():
     """
     A RegexBuilder
@@ -95,8 +72,8 @@ class TokenizerCase():
     A TokenizerCase
     """
 
-    def __init__(self, pattern_args, pattern_func, flags=0):
-        rb = RegexBuilder(pattern_args, pattern_func, flags)
+    def __init__(self, pattern_args, pattern_func):
+        rb = RegexBuilder(pattern_args, pattern_func)
         self.regex = rb.regex
 
 
@@ -105,11 +82,12 @@ class Tokenizer():
     A Tokenizer
     """
 
-    def __init__(self, tokenizer_cases)
+    def __init__(self, tokenizer_cases, flags=re.IGNORECASE):
         alts = []
         for tc in tokenizer_cases:
             alts.append(tc.regex)
-        self.regex = '|'.join(alts)
+        pattern = '|'.join(alt.pattern for alt in alts)
+        self.regex = re.compile(pattern, flags)
 
-    def run(text):
+    def run(self, text):
         return self.regex.split(text)
