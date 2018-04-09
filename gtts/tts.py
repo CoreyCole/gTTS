@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from gtts.tokenizer import pre_processors, Tokenizer, tokenizer_cases
 from gtts.lang import Languages, LanguagesFetchError
-from gtts.utils import _len, _minimize
+from gtts.utils import _minimize, _len, _clean_tokens
 
 from gtts_token import gtts_token
 from six.moves import urllib
@@ -113,31 +113,27 @@ class gTTS:
         self.token = gtts_token.Token()
 
     def _tokenize(self, text):
-        # Apply pre-processords
+        # Pre-clean
+        text = text.strip()
+
+        # Apply pre-processorss
         for pp in self.pre_processor_funcs:
             text = pp(text)
 
         if _len(text) <= self.MAX_CHARS:
-            # The API removes newlines gluing words together...
-            # (normally the tokenizer takes care of this)
-            text = text.replace('\n', ' ')
             return [text]
-        else:
-            # Tokenize
-            tokens = self.tokenizer_func(text)
-            self.log.debug("BEFORE CLEAN")
-            self.log.debug(tokens)
 
-            # Clean
-            tokens = [t.strip() for t in tokens if t.strip()]            
-            self.log.debug("AFTER CLEAN")
-            self.log.debug(tokens)
+        # Tokenize
+        tokens = self.tokenizer_func(text)
 
-            # Minimize tokens
-            min_tokens = []
-            for t in tokens:
-                min_tokens += _minimize(t, ' ', self.MAX_CHARS)
-            return min_tokens
+        # Clean
+        tokens = _clean_tokens(tokens)
+
+        # Minimize
+        min_tokens = []
+        for t in tokens:
+            min_tokens += _minimize(t, ' ', self.MAX_CHARS)
+        return min_tokens
 
     def write_to_fp(self, fp):
         """Do the TTS API request and write result to a file-like object

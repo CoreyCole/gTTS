@@ -1,34 +1,43 @@
 # -*- coding: utf-8 -*-
-from gtts.tokenizer import PreProcessorRegex, PreProcessorSub
+from gtts.tokenizer import PreProcessorRegex, PreProcessorSub, symbols
 import re
 
-# Because the tokenizer will split after a tone-modidfying
-# punctuation mark, make sure there's whitespace after.
-tone_marks = PreProcessorRegex(
-    search_args=u"?!？！",
-    search_func=lambda x: u"(?<={})".format(x),
-    repl=' ').run
 
-# Re-form words cut by end-of-line hyphens (remove "<hyphen><newline>").
-end_of_line = PreProcessorRegex(
-    search_args=u'-',
-    search_func=lambda x: u"{}\n".format(x),
-    repl='').run
+def tone_marks(text):
+    """
+    Because the tokenizer will split after a tone-modidfying
+    punctuation mark, make sure there's whitespace after.
+    """
+    return PreProcessorRegex(
+        search_args=symbols.TONE_MARKS,
+        search_func=lambda x: u"(?<={})".format(x),
+        repl=' ').run(text)
 
-ABBREVIATIONS = ['dr', 'jr', 'mr',
-                 'mrs', 'ms', 'msgr',
-                 'prof', 'sr', 'st']
 
-# Remove periods after abbrevations that can be read without.
-# TODO Caveat: Could potentially remove the ending period of a sentence.
-abbreviations = PreProcessorRegex(
-    search_args=ABBREVIATIONS,
-    search_func=lambda x: u"(?<={})(?=\.).".format(x),
-    repl='', flags=re.IGNORECASE).run
+def end_of_line(text):
+    """
+    Re-form words cut by end-of-line hyphens (remove "<hyphen><newline>").
+    """
+    return PreProcessorRegex(
+        search_args=u'-',
+        search_func=lambda x: u"{}\n".format(x),
+        repl='').run(text)
 
-SUBS = [
-    ('M.', 'Monsieur')
-]
 
-# Word-for-word substitutions.
-word_sub = PreProcessorSub(sub_pairs=SUBS).run
+def abbreviations(text):
+    """
+    Remove periods after abbrevations that can be read without.
+    TODO Caveat: Could potentially remove the ending period of a sentence.
+    """
+    return PreProcessorRegex(
+        search_args=symbols.ABBREVIATIONS,
+        search_func=lambda x: u"(?<={})(?=\.).".format(x),
+        repl='', flags=re.IGNORECASE).run(text)
+
+
+def word_sub(text):
+    """
+    Word-for-word substitutions.
+    """
+    return PreProcessorSub(
+        sub_pairs=symbols.SUBSTITUTIONS).run(text)

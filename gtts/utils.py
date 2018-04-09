@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+from string import punctuation as punc, whitespace as ws
+import re
+
+_ALL_PUNC_OR_SPACE = re.compile(u"^[{}]*$".format(re.escape(punc + ws)))
+
 
 def _minimize(the_string, delim, max_size):
     """ Recursive function that splits `the_string` in chunks
@@ -19,6 +24,7 @@ def _minimize(the_string, delim, max_size):
     else:
         return [the_string]
 
+
 def _len(text):
     """Get real char len of <text>, via unicode() if Python 2"""
     try:
@@ -28,5 +34,8 @@ def _len(text):
         # Python 3
         return len(text)
 
-def _clean(tokens):
-    tokens = [t.strip() for t in tokens if t.strip()]
+
+def _clean_tokens(tokens):
+    """Filter out tokens that are all punctuation and/or whitespace.
+    Strip whitespace from the rest of the tokens"""
+    return [t.strip() for t in tokens if not _ALL_PUNC_OR_SPACE.match(t)]

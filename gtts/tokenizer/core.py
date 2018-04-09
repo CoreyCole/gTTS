@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 
+
 class RegexBuilder():
     """
     A RegexBuilder
@@ -67,25 +68,15 @@ class PreProcessorSub():
         return text
 
 
-class TokenizerCase():
-    """
-    A TokenizerCase
-    """
-
-    def __init__(self, pattern_args, pattern_func):
-        rb = RegexBuilder(pattern_args, pattern_func)
-        self.regex = rb.regex
-
-
 class Tokenizer():
     """
     A Tokenizer
     """
 
-    def __init__(self, tokenizer_cases, flags=re.IGNORECASE):
+    def __init__(self, regex_funcs, flags=re.IGNORECASE):
         alts = []
-        for tc in tokenizer_cases:
-            alts.append(tc.regex)
+        for func in regex_funcs:
+            alts.append(func())
         pattern = '|'.join(alt.pattern for alt in alts)
         self.regex = re.compile(pattern, flags)
 
