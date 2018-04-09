@@ -5,7 +5,7 @@ ABBREVIATIONS = [
     'mrs', 'ms', 'msgr',
     'prof', 'sr', 'st']
 
-SUBSTITUTIONS = [
+SUB_PAIRS = [
     ('M.', 'Monsieur')
 ]
 

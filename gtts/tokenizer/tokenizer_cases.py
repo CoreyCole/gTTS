@@ -5,6 +5,7 @@ from gtts.tokenizer import RegexBuilder, symbols
 def tone_marks():
     """
     Keep tone-modifying punctuation. Match following character.
+    Assumes the `tone_marks()` pre-processor was run.
     """
     return RegexBuilder(
         pattern_args=symbols.TONE_MARKS,
@@ -24,16 +25,14 @@ def period_comma():
         pattern_func=lambda x: u"(?<!\.[a-z]){} ".format(x)).regex
 
 
-OTHER_PUNC = ''.join((
-    set(symbols.ALL_PUNC) -
-    set(symbols.TONE_MARKS) -
-    set(symbols.PERIOD_COMMA)))
-
-
 def other_punctuation():
     """
     Match other punctuation.
     """
+    OTHER_PUNC = ''.join((
+        set(symbols.ALL_PUNC) -
+        set(symbols.TONE_MARKS) -
+        set(symbols.PERIOD_COMMA)))
     return RegexBuilder(
         pattern_args=OTHER_PUNC,
         pattern_func=lambda x: u"{}".format(x)).regex

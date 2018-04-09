@@ -40,4 +40,4 @@ def word_sub(text):
     Word-for-word substitutions.
     """
     return PreProcessorSub(
-        sub_pairs=symbols.SUBSTITUTIONS).run(text)
+        sub_pairs=symbols.SUB_PAIRS).run(text)
