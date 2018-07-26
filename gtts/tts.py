@@ -33,6 +33,7 @@ class gTTS:
         'en' : 'English',
         'en-au' : 'English (Australia)',
         'en-uk' : 'English (United Kingdom)',
+        'en-gb' : 'English (United Kingdom)',
         'en-us' : 'English (United States)',
 	'en-ca' : 'English (Canada)',
 	'en-gh' : 'English (Ghana)',
